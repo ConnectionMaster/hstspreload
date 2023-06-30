@@ -84,7 +84,14 @@ func getFirstResponseWithTransport(initialURL string, transport *http.Transport)
 		return ok && urlError.Err == redirectPrevented
 	}
 
-	resp, err := client.Get(initialURL)
+	req, err := http.NewRequest("GET", initialURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", "hstspreload-bot")
+	resp, err := client.Do(req)
+
 	if isRedirectPrevented(err) {
 		return resp, nil
 	}

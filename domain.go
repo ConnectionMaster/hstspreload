@@ -22,10 +22,6 @@ var dialer = net.Dialer{
 	Timeout: dialTimeout,
 }
 
-var clientWithTimeout = http.Client{
-	Timeout: dialTimeout,
-}
-
 // List of eTLDs for which:
 // - `www` subdomains are commonly available over HTTP, but
 // - site owners have no way to serve valid HTTPS on the `www` subdomain.
@@ -208,7 +204,7 @@ func checkDomainFormat(domain string) Issues {
 			"Invalid domain name",
 			"Please provide a domain that does not end with `.`")
 	}
-	if strings.Index(domain, "..") != -1 {
+	if strings.Contains(domain, "..") {
 		return issues.addErrorf(
 			IssueCode("domain.format.contains_double_dot"),
 			"Invalid domain name",
@@ -235,6 +231,14 @@ func checkDomainFormat(domain string) Issues {
 		}
 
 		return issues.addErrorf("domain.format.invalid_characters", "Invalid domain name", "Please provide a domain using valid characters (letters, numbers, dashes, dots).")
+	}
+
+	ip := net.ParseIP(domain)
+	if ip != nil {
+		return issues.addErrorf(
+			IssueCode("domain.format.is_ip_address"),
+			"Invalid domain name",
+			"Please provide a domain, not an IP address")
 	}
 
 	return issues
